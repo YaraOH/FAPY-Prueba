@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de Medios — FAPY | Locales y Regionales</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --verde: #1D6B4F;
+    --verde-claro: #D6EDE4;
+    --verde-medio: #5BA68A;
+    --arena: #F4F0E6;
+    --arena-oscura: #E8E2D0;
+    --texto: #1A1A18;
+    --texto-suave: #5C5C54;
+    --texto-tenue: #9C9C8E;
+    --borde: rgba(30,107,79,0.15);
+    --borde-hover: rgba(30,107,79,0.35);
+    --azul: #2B5FA6;
+    --azul-claro: #E0EAFB;
+    --naranja: #C25A1A;
+    --naranja-claro: #FAE9DC;
+    --morado: #5C3D99;
+    --morado-claro: #EDE6FA;
+    --rosa: #A63562;
+    --rosa-claro: #FAE4EE;
+    --gris: #6B6B63;
+    --gris-claro: #EEECEA;
+    --amarillo: #926B0A;
+    --amarillo-claro: #FDF0CC;
+    --rojo: #A62B2B;
+    --rojo-claro: #FAE0E0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--arena);
+    color: var(--texto);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--verde);
+    color: white;
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 30%;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .header-label {
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 6px;
+    font-weight: 400;
+  }
+  .header-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    line-height: 1.15;
+    color: white;
+    font-weight: 400;
+  }
+  .header-title em {
+    font-style: italic;
+    color: rgba(255,255,255,0.7);
+  }
+  .header-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 6px;
+    font-weight: 300;
+  }
+  .header-badge {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 10px 16px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .badge-num { font-size: 2rem; font-weight: 300; color: white; line-height: 1; }
+  .badge-label { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; text-transform: uppercase; letter-spacing: .08em; }
+
+  /* MÉTRICAS */
+  .metrics-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--verde);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 0 2rem 1.5rem;
+    gap: 0;
+  }
+  .metric-item {
+    padding: 1rem 1rem 0;
+    border-left: 1px solid rgba(255,255,255,0.1);
+  }
+  .metric-item:first-child { border-left: none; padding-left: 0; }
+  .metric-n { font-size: 1.6rem; font-weight: 300; color: white; }
+  .metric-l { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+
+  /* MAIN CONTENT */
+  .main { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+  /* FILTROS */
+  .filters-section {
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .filters-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--texto-tenue);
+    margin-bottom: 1rem;
+  }
+  .filter-group { margin-bottom: 1rem; }
+  .filter-group:last-child { margin-bottom: 0; }
+  .filter-group-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--texto-suave);
+    margin-bottom: 6px;
+  }
+  .filter-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1px solid var(--borde);
+    background: transparent;
+    color: var(--texto-suave);
+    cursor: pointer;
+    transition: all .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .pill:hover { border-color: var(--borde-hover); color: var(--verde); }
+  .pill.active {
+    background: var(--verde);
+    color: white;
+    border-color: var(--verde);
+  }
+  .pill-all.active { background: var(--texto); border-color: var(--texto); }
+
+  .search-row { display: flex; gap: 10px; margin-bottom: 1rem; }
+  .search-input {
+    flex: 1;
+    padding: 8px 14px;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto);
+    background: var(--arena);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .search-input:focus { border-color: var(--verde); background: white; }
+  .search-input::placeholder { color: var(--texto-tenue); }
+  .reset-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--texto-suave);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .reset-btn:hover { background: var(--arena-oscura); }
+
+  /* RESULTADOS BAR */
+  .results-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 0 2px;
+  }
+  .results-count { font-size: 13px; color: var(--texto-suave); }
+  .results-count span { font-weight: 500; color: var(--texto); }
+  .sort-select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 5px 10px;
+    background: white;
+    color: var(--texto-suave);
+    cursor: pointer;
+    outline: none;
+  }
+
+  /* TABLA / CARDS */
+  .table-header {
+    display: grid;
+    grid-template-columns: 28px 1fr 130px 120px 180px;
+    gap: 0;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--texto-tenue);
+    border-bottom: 1px solid var(--borde);
+    margin-bottom: 4px;
+  }
+  .medio-card {
+    display: grid;
+    grid-template-columns: 28px 1fr 130px 120px 180px;
+    gap: 0;
+    padding: 12px 14px;
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    align-items: center;
+    transition: border-color .15s, box-shadow .15s;
+    cursor: default;
+  }
+  .medio-card:hover { border-color: var(--borde-hover); box-shadow: 0 2px 8px rgba(30,107,79,0.06); }
+  .card-num { font-size: 12px; color: var(--texto-tenue); font-weight: 400; }
+  .card-nombre { font-size: 14px; font-weight: 500; color: var(--texto); }
+  .card-notas { font-size: 11px; color: var(--texto-tenue); margin-top: 2px; line-height: 1.4; }
+  .card-link { font-size: 11px; color: var(--verde-medio); text-decoration: none; }
+  .card-link:hover { text-decoration: underline; }
+
+  /* TAGS */
+  .tag {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  .tag-periodico { background: var(--azul-claro); color: var(--azul); }
+  .tag-radio-publica { background: var(--verde-claro); color: var(--verde); }
+  .tag-radio-comercial { background: var(--naranja-claro); color: var(--naranja); }
+  .tag-radio-comunitaria { background: var(--amarillo-claro); color: var(--amarillo); }
+  .tag-digital { background: var(--morado-claro); color: var(--morado); }
+  .tag-television { background: var(--rojo-claro); color: var(--rojo); }
+  .tag-facebook { background: var(--rosa-claro); color: var(--rosa); }
+  .tag-instagram { background: var(--rosa-claro); color: var(--rosa); }
+  .tag-multimedios { background: var(--gris-claro); color: var(--gris); }
+
+  .estado-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--texto-suave);
+  }
+  .estado-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-yuc { background: #2B5FA6; }
+  .dot-qroo { background: #1D9E75; }
+  .dot-camp { background: #C25A1A; }
+  .dot-pen { background: #6B6B63; }
+
+  .notas-col { padding-right: 8px; }
+  .notas-text { font-size: 11px; color: var(--texto-tenue); line-height: 1.45; }
+  .url-text { font-size: 10px; color: var(--verde-medio); word-break: break-all; }
+
+  /* CHARTS */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .chart-card {
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 1.25rem;
+  }
+  .chart-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--texto-tenue);
+    margin-bottom: 1rem;
+  }
+  .chart-wrap { position: relative; }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .leg-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--texto-suave); }
+  .leg-sq { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--texto-tenue);
+    font-size: 14px;
+  }
+  .empty-state-icon { font-size: 2rem; margin-bottom: 0.5rem; opacity: .4; }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 11px;
+    color: var(--texto-tenue);
+    border-top: 1px solid var(--borde);
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .metrics-bar { grid-template-columns: repeat(2,1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+    .table-header { display: none; }
+    .medio-card { grid-template-columns: 1fr; gap: 6px; }
+    .card-num { display: none; }
+    .main { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-label">Plan estratégico de comunicación · FAPY</div>
+      <h1 class="header-title">Mapa de Medios<br><em>Locales y Regionales</em></h1>
+      <div class="header-sub">Península de Yucatán · Yucatán, Campeche y Quintana Roo</div>
+    </div>
+    <div class="header-badge">
+      <div class="badge-num" id="total-visible">38</div>
+      <div class="badge-label">Medios</div>
+    </div>
+  </div>
+</div>
+
+<div class="metrics-bar">
+  <div class="metric-item">
+    <div class="metric-n">11</div>
+    <div class="metric-l">Yucatán</div>
+  </div>
+  <div class="metric-item">
+    <div class="metric-n">11</div>
+    <div class="metric-l">Quintana Roo</div>
+  </div>
+  <div class="metric-item">
+    <div class="metric-n">8</div>
+    <div class="metric-l">Campeche</div>
+  </div>
+  <div class="metric-item">
+    <div class="metric-n">8</div>
+    <div class="metric-l">Cobertura peninsular</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- CHARTS -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Distribución por tipo de medio</div>
+      <div class="legend-row">
+        <span class="leg-item"><span class="leg-sq" style="background:#2B5FA6"></span>Periódico 15</span>
+        <span class="leg-item"><span class="leg-sq" style="background:#1D9E75"></span>Radio pública 7</span>
+        <span class="leg-item"><span class="leg-sq" style="background:#C25A1A"></span>Radio comercial 4</span>
+        <span class="leg-item"><span class="leg-sq" style="background:#5C3D99"></span>Digital 4</span>
+        <span class="leg-item"><span class="leg-sq" style="background:#A62B2B"></span>Televisión 2</span>
+        <span class="leg-item"><span class="leg-sq" style="background:#A63562"></span>Redes 3</span>
+        <span class="leg-item"><span class="leg-sq" style="background:#6B6B63"></span>Otros 3</span>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="chartTipo" role="img" aria-label="Gráfica de dona: distribución por tipo de medio">15 periódicos, 7 radios públicas, 4 radios comerciales, 4 digitales, 2 televisiones, 3 redes sociales, 3 otros.</canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Tipo de medio por estado</div>
+      <div class="legend-row">
+        <span class="leg-item"><span class="leg-sq" style="background:#2B5FA6"></span>Yucatán</span>
+        <span class="leg-item"><span class="leg-sq" style="background:#1D9E75"></span>Quintana Roo</span>
+        <span class="leg-item"><span class="leg-sq" style="background:#C25A1A"></span>Campeche</span>
+        <span class="leg-item"><span class="leg-sq" style="background:#888780"></span>Península</span>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="chartEstado" role="img" aria-label="Gráfica de barras apiladas por tipo y estado">Distribución de medios por tipo y estado de la Península de Yucatán.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filters-section">
+    <div class="filters-title">Filtros</div>
+
+    <div class="search-row">
+      <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre o notas...">
+      <button class="reset-btn" id="resetBtn">Limpiar filtros</button>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-label">Estado / Región</div>
+      <div class="filter-pills" id="filter-estado">
+        <button class="pill pill-all active" data-val="todos">Todos</button>
+        <button class="pill" data-val="Yucatán">Yucatán</button>
+        <button class="pill" data-val="Quintana Roo">Quintana Roo</button>
+        <button class="pill" data-val="Campeche">Campeche</button>
+        <button class="pill" data-val="Península">Península</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-label">Tipo de medio</div>
+      <div class="filter-pills" id="filter-tipo">
+        <button class="pill pill-all active" data-val="todos">Todos</button>
+        <button class="pill" data-val="Periódico">Periódico</button>
+        <button class="pill" data-val="Radio pública">Radio pública</button>
+        <button class="pill" data-val="Radio comercial">Radio comercial</button>
+        <button class="pill" data-val="Radio comunitaria">Radio comunitaria</button>
+        <button class="pill" data-val="Digital">Digital</button>
+        <button class="pill" data-val="Televisión">Televisión</button>
+        <button class="pill" data-val="Facebook">Facebook</button>
+        <button class="pill" data-val="Instagram">Instagram</button>
+        <button class="pill" data-val="Multimedios">Multimedios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="results-bar">
+    <div class="results-count">Mostrando <span id="countShown">38</span> de 38 medios</div>
+    <select class="sort-select" id="sortSelect">
+      <option value="num">Ordenar por número</option>
+      <option value="nombre">Ordenar por nombre A–Z</option>
+      <option value="tipo">Ordenar por tipo</option>
+      <option value="estado">Ordenar por estado</option>
+    </select>
+  </div>
+
+  <div class="table-header">
+    <div>#</div>
+    <div>Medio / Descripción</div>
+    <div>Tipo de medio</div>
+    <div>Estado / Región</div>
+    <div>Notas</div>
+  </div>
+
+  <div id="medio-list"></div>
+
+  <div class="empty-state" id="empty-state" style="display:none">
+    <div class="empty-state-icon">○</div>
+    No hay medios que coincidan con los filtros seleccionados.
+  </div>
+</div>
+
+<div class="footer">
+  Mapa de Medios FAPY · Locales y Regionales · Generado desde Mapa_de_medios_FAPY_v2_OK.xlsx · Se recomienda actualizar cada seis meses
+</div>
+
+<script>
+const medios = [
+  {num:1, nombre:'SIPSE', tipo:'Multimedios', estado:'Península', notas:'Canal 2 y Canal 9, con fuerte presencia en Mérida y Cancún. Conglomerado más fuerte en la región, con presencia en prensa, radio y televisión.', url:''},
+  {num:2, nombre:'Eclipse TV', tipo:'Televisión', estado:'Yucatán', notas:'Cadena privada. Con presencia en Yucatán, Campeche y Cancún.', url:''},
+  {num:3, nombre:'Radio UADY', tipo:'Radio pública', estado:'Yucatán', notas:'Radio Universidad Autónoma de Yucatán. Espacio cultural y académico en Mérida.', url:''},
+  {num:4, nombre:'Diario de Yucatán', tipo:'Periódico', estado:'Yucatán', notas:'', url:''},
+  {num:5, nombre:'Por Esto!', tipo:'Periódico', estado:'Yucatán', notas:'', url:''},
+  {num:6, nombre:'La Jornada Maya', tipo:'Periódico', estado:'Yucatán', notas:'', url:''},
+  {num:7, nombre:'La Revista Peninsular', tipo:'Periódico', estado:'Yucatán', notas:'', url:''},
+  {num:8, nombre:'Televisa Regional', tipo:'Televisión', estado:'Península', notas:'Cadena privada. Con repetidoras en Yucatán, Campeche y Cancún.', url:''},
+  {num:9, nombre:'Radio Fórmula', tipo:'Radio comercial', estado:'Península', notas:'Cadena privada. Con repetidoras en Yucatán, Campeche y Cancún.', url:''},
+  {num:10, nombre:'Tribuna', tipo:'Periódico', estado:'Campeche', notas:'', url:''},
+  {num:11, nombre:'Campeche Hoy', tipo:'Periódico', estado:'Campeche', notas:'', url:''},
+  {num:12, nombre:'Expreso', tipo:'Periódico', estado:'Campeche', notas:'', url:''},
+  {num:13, nombre:'Crónica', tipo:'Periódico', estado:'Campeche', notas:'', url:''},
+  {num:14, nombre:'Comunica Campeche', tipo:'Periódico', estado:'Campeche', notas:'', url:''},
+  {num:15, nombre:'Radio Turquesa', tipo:'Radio comercial', estado:'Quintana Roo', notas:'Radio privada con apertura a temas culturales.', url:''},
+  {num:16, nombre:'Exa FM / La Mejor (MVS)', tipo:'Radio comercial', estado:'Península', notas:'Cadena privada. Con repetidoras en Mérida, Campeche y Cancún.', url:''},
+  {num:17, nombre:'Novedades de Quintana Roo', tipo:'Periódico', estado:'Quintana Roo', notas:'(SIPSE)', url:''},
+  {num:18, nombre:'La Verdad Noticias', tipo:'Periódico', estado:'Quintana Roo', notas:'', url:''},
+  {num:19, nombre:'Quequi', tipo:'Periódico', estado:'Quintana Roo', notas:'', url:''},
+  {num:20, nombre:'Diario de QRoo', tipo:'Periódico', estado:'Quintana Roo', notas:'', url:''},
+  {num:21, nombre:'Luces del Siglo', tipo:'Periódico', estado:'Quintana Roo', notas:'', url:''},
+  {num:22, nombre:'Tsolkiin Noticias', tipo:'Facebook', estado:'Quintana Roo', notas:'Felipe Carrillo Puerto.', url:'https://www.facebook.com/TsolkiinNoticias/'},
+  {num:23, nombre:'XENKA', tipo:'Radio pública', estado:'Quintana Roo', notas:'', url:''},
+  {num:24, nombre:'Jaltún', tipo:'Digital', estado:'Península', notas:'Agenda de derechos humanos y territorios. Financiado por el CMSS.', url:'https://jaltun.mx/'},
+  {num:25, nombre:'El Sol Maya', tipo:'Digital', estado:'Quintana Roo', notas:'Enfoque en medio ambiente y turismo.', url:''},
+  {num:26, nombre:'Península al Extremo', tipo:'Facebook', estado:'Península', notas:'Política, seguridad, activismos.', url:'https://www.facebook.com/peninsulaalextremo'},
+  {num:27, nombre:'Península al Extremo', tipo:'Instagram', estado:'Península', notas:'Política, seguridad, activismos.', url:'https://www.facebook.com/peninsulaalextremo'},
+  {num:28, nombre:'Líneas Emergentes', tipo:'Digital', estado:'Yucatán', notas:'Seguridad, activismos, medio ambiente.', url:'https://lineasemergentes.mx/'},
+  {num:29, nombre:'Radio Delfín', tipo:'Radio pública', estado:'Campeche', notas:'Espacio cultural y académico en Campeche.', url:''},
+  {num:30, nombre:'Radio UAC', tipo:'Radio pública', estado:'Campeche', notas:'Radio Universidad Autónoma de Campeche. Espacio cultural y académico.', url:''},
+  {num:31, nombre:'La Voz del Corazón de la Selva', tipo:'Radio pública', estado:'Campeche', notas:'Difusora del INPI en Xpujil.', url:''},
+  {num:32, nombre:'Akumal FM', tipo:'Radio comunitaria', estado:'Quintana Roo', notas:'Comunitaria y comercial.', url:''},
+  {num:33, nombre:'Riviera FM', tipo:'Radio pública', estado:'Quintana Roo', notas:'', url:''},
+  {num:34, nombre:'XEPET La Voz de los Mayas', tipo:'Radio pública', estado:'Yucatán', notas:'Difusora del INPI en Yucatán.', url:''},
+  {num:35, nombre:'Comunica lo Bueno', tipo:'Radio comercial', estado:'Yucatán', notas:'Privada abierta a temas culturales.', url:''},
+  {num:36, nombre:'El Sol de México', tipo:'Periódico', estado:'Península', notas:'', url:''},
+  {num:37, nombre:'Haz Ruido', tipo:'Digital', estado:'Yucatán', notas:'', url:'https://www.hazruido.mx/'},
+  {num:38, nombre:'La Voz del Camino Real', tipo:'Digital', estado:'Yucatán', notas:'', url:''}
+];
+
+const tagClasses = {
+  'Periódico':'tag-periodico','Radio pública':'tag-radio-publica','Radio comercial':'tag-radio-comercial',
+  'Radio comunitaria':'tag-radio-comunitaria','Digital':'tag-digital','Televisión':'tag-television',
+  'Facebook':'tag-facebook','Instagram':'tag-instagram','Multimedios':'tag-multimedios'
+};
+const dotClasses = { 'Yucatán':'dot-yuc','Quintana Roo':'dot-qroo','Campeche':'dot-camp','Península':'dot-pen' };
+
+let filtroEstado = 'todos';
+let filtroTipo = 'todos';
+let busqueda = '';
+let sortMode = 'num';
+
+function getFiltered(){
+  let data = [...medios];
+  if(filtroEstado !== 'todos') data = data.filter(m=>m.estado===filtroEstado);
+  if(filtroTipo !== 'todos') data = data.filter(m=>m.tipo===filtroTipo);
+  if(busqueda) {
+    const q = busqueda.toLowerCase();
+    data = data.filter(m=>m.nombre.toLowerCase().includes(q)||m.notas.toLowerCase().includes(q));
+  }
+  if(sortMode==='nombre') data.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+  else if(sortMode==='tipo') data.sort((a,b)=>a.tipo.localeCompare(b.tipo,'es'));
+  else if(sortMode==='estado') data.sort((a,b)=>a.estado.localeCompare(b.estado,'es'));
+  else data.sort((a,b)=>a.num-b.num);
+  return data;
+}
+
+function renderList(){
+  const data = getFiltered();
+  const list = document.getElementById('medio-list');
+  const empty = document.getElementById('empty-state');
+  document.getElementById('countShown').textContent = data.length;
+  document.getElementById('total-visible').textContent = data.length;
+  if(data.length===0){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML = data.map(m=>`
+    <div class="medio-card">
+      <div class="card-num">${m.num}</div>
+      <div>
+        <div class="card-nombre">${m.nombre}</div>
+      </div>
+      <div><span class="tag ${tagClasses[m.tipo]||''}">${m.tipo}</span></div>
+      <div>
+        <span class="estado-chip">
+          <span class="estado-dot ${dotClasses[m.estado]||''}"></span>
+          ${m.estado}
+        </span>
+      </div>
+      <div class="notas-col">
+        ${m.notas ? `<div class="notas-text">${m.notas}</div>` : ''}
+        ${m.url ? `<a class="card-link" href="${m.url}" target="_blank">${m.url}</a>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function makePillFilter(groupId, setter){
+  document.getElementById(groupId).addEventListener('click', e=>{
+    const pill = e.target.closest('.pill');
+    if(!pill) return;
+    document.querySelectorAll(`#${groupId} .pill`).forEach(p=>p.classList.remove('active'));
+    pill.classList.add('active');
+    setter(pill.dataset.val);
+    renderList();
+  });
+}
+
+makePillFilter('filter-estado', v=>{ filtroEstado=v; });
+makePillFilter('filter-tipo', v=>{ filtroTipo=v; });
+
+document.getElementById('searchInput').addEventListener('input', e=>{
+  busqueda = e.target.value.trim();
+  renderList();
+});
+
+document.getElementById('sortSelect').addEventListener('change', e=>{ sortMode=e.target.value; renderList(); });
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  filtroEstado='todos'; filtroTipo='todos'; busqueda=''; sortMode='num';
+  document.getElementById('searchInput').value='';
+  document.getElementById('sortSelect').value='num';
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.pill-all').forEach(p=>p.classList.add('active'));
+  renderList();
+});
+
+renderList();
+
+// Charts
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.color = '#9C9C8E';
+
+new Chart(document.getElementById('chartTipo'),{
+  type:'doughnut',
+  data:{
+    labels:['Periódico','Radio pública','Radio comercial','Digital','Televisión','Facebook/IG/Red','Otros'],
+    datasets:[{
+      data:[15,7,4,4,2,3,3],
+      backgroundColor:['#2B5FA6','#1D9E75','#C25A1A','#5C3D99','#A62B2B','#A63562','#6B6B63'],
+      borderWidth:3,borderColor:'white'
+    }]
+  },
+  options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}
+});
+
+new Chart(document.getElementById('chartEstado'),{
+  type:'bar',
+  data:{
+    labels:['Periódico','R. pública','R. comercial','Digital','TV','Redes','Otros'],
+    datasets:[
+      {label:'Yucatán',data:[4,3,1,3,1,0,0],backgroundColor:'#2B5FA6',borderRadius:3},
+      {label:'Quintana Roo',data:[5,2,1,1,0,2,1],backgroundColor:'#1D9E75',borderRadius:3},
+      {label:'Campeche',data:[5,3,0,0,0,0,0],backgroundColor:'#C25A1A',borderRadius:3},
+      {label:'Península',data:[1,0,2,0,1,1,2],backgroundColor:'#888780',borderRadius:3}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{stacked:true,grid:{display:false},ticks:{font:{size:10},maxRotation:30}},
+      y:{stacked:true,grid:{color:'rgba(0,0,0,0.06)'},ticks:{stepSize:2,font:{size:10}}}
+    }
+  }
+});
+</script>
+</body>
+</html>
